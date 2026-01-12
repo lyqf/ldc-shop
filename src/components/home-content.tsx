@@ -294,7 +294,7 @@ export function HomeContent({ products, announcement, visitorCount, categories: 
                                         </div>
                                     )}
 
-                                    <div className="text-muted-foreground text-xs line-clamp-2 leading-relaxed opacity-80 h-8">
+                                    <div className="text-muted-foreground text-xs line-clamp-2 opacity-80 h-9">
                                         <ReactMarkdown
                                             allowedElements={["text", "span"]}
                                             unwrapDisallowed={true}
@@ -318,34 +318,18 @@ export function HomeContent({ products, announcement, visitorCount, categories: 
                                         )}
                                     </div>
 
-                                    <div className="flex items-center gap-2">
-                                        <Link href={`/buy/${product.id}`}>
-                                            <Button
-                                                size="sm"
-                                                variant="secondary"
-                                                className="h-8 w-8 p-0 rounded-full shadow-sm hover:shadow-md transition-all bg-muted text-muted-foreground hover:bg-muted/80"
-                                                title={t('common.viewDetails')}
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                                                    <circle cx="12" cy="12" r="3" />
-                                                </svg>
-                                                <span className="sr-only">{t('common.viewDetails')}</span>
-                                            </Button>
-                                        </Link>
-                                        <Link href={`/buy/${product.id}`}>
-                                            <Button
-                                                size="sm"
-                                                className={cn(
-                                                    "h-8 px-4 text-xs font-medium rounded-full shadow-sm hover:shadow-md transition-all active:scale-95",
-                                                    product.stockCount > 0 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted"
-                                                )}
-                                                disabled={product.stockCount <= 0}
-                                            >
-                                                {product.stockCount > 0 ? t('common.buy') : t('common.outOfStock')}
-                                            </Button>
-                                        </Link>
-                                    </div>
+                                    <Link href={`/buy/${product.id}`}>
+                                        <Button
+                                            size="sm"
+                                            className={cn(
+                                                "h-8 px-4 text-xs font-medium rounded-full shadow-sm hover:shadow-md transition-all active:scale-95",
+                                                product.stockCount > 0 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted"
+                                            )}
+                                            disabled={product.stockCount <= 0}
+                                        >
+                                            {product.stockCount > 0 ? t('common.buy') : t('common.outOfStock')}
+                                        </Button>
+                                    </Link>
                                 </CardFooter>
                             </Card>
                         ))}
