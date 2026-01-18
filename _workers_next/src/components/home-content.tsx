@@ -1,20 +1,17 @@
-'use client'
-
-import { useState, useMemo } from "react"
-import { useI18n } from "@/lib/i18n/context"
+import { getServerI18n } from "@/lib/i18n/server"
 import Link from "next/link"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { StarRating } from "@/components/star-rating"
-import ReactMarkdown from 'react-markdown'
 import { cn } from "@/lib/utils"
+import { StarRatingStatic } from "@/components/star-rating-static"
 
 interface Product {
     id: string
     name: string
     description: string | null
+    descriptionPlain?: string | null
     price: string
     compareAtPrice?: string | null
     image: string | null
@@ -30,72 +27,31 @@ interface HomeContentProps {
     products: Product[]
     announcement?: string | null
     visitorCount?: number
-    categories?: Array<{ name: string; icon: string | null; sortOrder: number }>
+    categories?: string[]
+    categoryConfig?: Array<{ name: string; icon: string | null; sortOrder: number }>
     pendingOrders?: Array<{ orderId: string; createdAt: Date; productName: string; amount: string }>
+    filters: { q?: string; category?: string | null; sort?: string }
+    pagination: { page: number; pageSize: number; total: number }
 }
 
-export function HomeContent({ products, announcement, visitorCount, categories: categoryConfig, pendingOrders }: HomeContentProps) {
-    const { t } = useI18n()
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-    const [searchTerm, setSearchTerm] = useState("")
-    const [sortKey, setSortKey] = useState<string>("default")
+export async function HomeContent({ products, announcement, visitorCount, categories = [], categoryConfig, pendingOrders, filters, pagination }: HomeContentProps) {
+    const { t } = await getServerI18n()
+    const selectedCategory = filters.category || null
+    const searchTerm = filters.q || ""
+    const sortKey = filters.sort || "default"
 
-    // Extract unique categories
-    const categories = useMemo(() => {
-        const productCategories = new Set(products.map(p => p.category).filter(Boolean) as string[])
-        const configCategories = categoryConfig || []
+    const buildUrl = (next: { q?: string; category?: string | null; sort?: string; page?: number }) => {
+        const params = new URLSearchParams()
+        if (next.q) params.set('q', next.q)
+        if (next.category) params.set('category', next.category)
+        if (next.sort && next.sort !== 'default') params.set('sort', next.sort)
+        if (next.page && next.page > 1) params.set('page', String(next.page))
+        const qs = params.toString()
+        return qs ? `/?${qs}` : '/'
+    }
 
-        // Start with configured categories to preserve their order
-        const orderedNames = configCategories
-            .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
-            .map(c => c.name)
-
-        // Add any product categories that aren't in the config
-        const extraCategories = Array.from(productCategories)
-            .filter(c => !configCategories.some(config => config.name === c))
-            .sort()
-
-        return [...orderedNames, ...extraCategories]
-    }, [categoryConfig, products])
-
-    // Filter products
-    const filteredProducts = useMemo(() => {
-        let result = products
-
-        // Category filter
-        if (selectedCategory) {
-            result = result.filter(p => p.category === selectedCategory)
-        }
-
-        // Search filter
-        if (searchTerm) {
-            const lowerTerm = searchTerm.toLowerCase()
-            result = result.filter(p =>
-                p.name.toLowerCase().includes(lowerTerm) ||
-                (p.description && p.description.toLowerCase().includes(lowerTerm))
-            )
-        }
-
-        const sorted = [...result]
-        switch (sortKey) {
-            case 'priceAsc':
-                sorted.sort((a, b) => Number(a.price) - Number(b.price))
-                break
-            case 'priceDesc':
-                sorted.sort((a, b) => Number(b.price) - Number(a.price))
-                break
-            case 'stockDesc':
-                sorted.sort((a, b) => (b.stockCount || 0) - (a.stockCount || 0))
-                break
-            case 'soldDesc':
-                sorted.sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0))
-                break
-            default:
-                break
-        }
-
-        return sorted
-    }, [products, selectedCategory, searchTerm, sortKey])
+    const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize))
+    const hasMore = pagination.page < totalPages
 
     return (
         <main className="container py-8 md:py-16 relative overflow-hidden">
@@ -161,7 +117,7 @@ export function HomeContent({ products, announcement, visitorCount, categories: 
                 {/* Top Toolbar: Search & Filter Pills */}
                 <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-card/50 p-1 rounded-xl">
                     {/* Search Bar */}
-                    <div className="relative w-full md:w-72 shrink-0">
+                    <form className="relative w-full md:w-72 shrink-0" method="get" action="/">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
@@ -173,11 +129,13 @@ export function HomeContent({ products, announcement, visitorCount, categories: 
                         </svg>
                         <Input
                             placeholder={t('common.searchPlaceholder')}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            defaultValue={searchTerm}
+                            name="q"
                             className="pl-9 w-full bg-background border-border/50 focus:bg-background transition-all"
                         />
-                    </div>
+                        {selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}
+                        {sortKey && sortKey !== 'default' && <input type="hidden" name="sort" value={sortKey} />}
+                    </form>
 
                     {/* Horizontal Category Pills */}
                     <div className="flex-1 w-full overflow-x-auto no-scrollbar pb-2 md:pb-0">
@@ -191,9 +149,9 @@ export function HomeContent({ products, announcement, visitorCount, categories: 
                                         ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-1 ring-primary/30"
                                         : "bg-background/70 border-dashed border-border hover:bg-muted"
                                 )}
-                                onClick={() => setSelectedCategory(null)}
+                                asChild
                             >
-                                {t('common.all')}
+                                <Link href={buildUrl({ q: searchTerm, category: null, sort: sortKey, page: 1 })}>{t('common.all')}</Link>
                             </Button>
                             {categories.map(category => (
                                 <Button
@@ -206,11 +164,13 @@ export function HomeContent({ products, announcement, visitorCount, categories: 
                                             ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 ring-1 ring-primary/30"
                                             : "bg-background/70 hover:bg-muted"
                                     )}
-                                    onClick={() => setSelectedCategory(category)}
+                                    asChild
                                 >
-                                    {categoryConfig?.length
-                                        ? `${categoryConfig.find(c => c.name === category)?.icon ? `${categoryConfig.find(c => c.name === category)?.icon} ` : ''}${category}`
-                                        : category}
+                                    <Link href={buildUrl({ q: searchTerm, category, sort: sortKey, page: 1 })}>
+                                        {categoryConfig?.length
+                                            ? `${categoryConfig.find(c => c.name === category)?.icon ? `${categoryConfig.find(c => c.name === category)?.icon} ` : ''}${category}`
+                                            : category}
+                                    </Link>
                                 </Button>
                             ))}
                         </div>
@@ -222,8 +182,9 @@ export function HomeContent({ products, announcement, visitorCount, categories: 
                         {[
                             { key: 'default', label: t('home.sort.default'), icon: null },
                             { key: 'stockDesc', label: t('home.sort.stock'), icon: '📦' },
-                            { key: 'priceAsc', label: 'Price ↑', icon: '💰' },
-                            { key: 'priceDesc', label: 'Price ↓', icon: '💰' },
+                            { key: 'soldDesc', label: t('home.sort.sold'), icon: '🔥' },
+                            { key: 'priceAsc', label: t('home.sort.priceAsc'), icon: '💰' },
+                            { key: 'priceDesc', label: t('home.sort.priceDesc'), icon: '💰' },
                         ].map(opt => (
                             <Button
                                 key={opt.key}
@@ -234,11 +195,11 @@ export function HomeContent({ products, announcement, visitorCount, categories: 
                                     "h-8 px-3 text-xs rounded-lg whitespace-nowrap",
                                     sortKey === opt.key ? "bg-secondary font-medium text-secondary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                 )}
-                                onClick={() => setSortKey(opt.key)}
+                                asChild
                             >
-                                {opt.key === 'priceAsc' ? t('home.sort.priceAsc') :
-                                    opt.key === 'priceDesc' ? t('home.sort.priceDesc') :
-                                        opt.label}
+                                <Link href={buildUrl({ q: searchTerm, category: selectedCategory, sort: opt.key, page: 1 })}>
+                                    {opt.label}
+                                </Link>
                             </Button>
                         ))}
                     </div>
@@ -247,7 +208,7 @@ export function HomeContent({ products, announcement, visitorCount, categories: 
 
             {/* Main Product Grid (Full Width) */}
             <section>
-                {filteredProducts.length === 0 ? (
+                {products.length === 0 ? (
                     <div className="text-center py-20 bg-muted/30 rounded-2xl border border-dashed border-muted-foreground/20 relative overflow-hidden">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,0,0,0.04),_transparent_60%)] dark:bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.06),_transparent_60%)]" />
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/50 mb-4">
@@ -258,14 +219,14 @@ export function HomeContent({ products, announcement, visitorCount, categories: 
                         <p className="text-muted-foreground font-medium">{t('home.noProducts')}</p>
                         <p className="text-sm text-muted-foreground/60 mt-2">{t('home.checkBackLater')}</p>
                         {selectedCategory && (
-                            <Button variant="link" onClick={() => setSelectedCategory(null)} className="mt-4">
-                                {t('common.all')}
+                            <Button variant="link" asChild className="mt-4">
+                                <Link href={buildUrl({ q: searchTerm, category: null, sort: sortKey, page: 1 })}>{t('common.all')}</Link>
                             </Button>
                         )}
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                        {filteredProducts.map((product, index) => (
+                        {products.map((product, index) => (
                             <Card
                                 key={product.id}
                                 className="group overflow-hidden flex flex-col tech-card border-border/40 bg-card/80 backdrop-blur-sm shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/50 transition-all duration-300 animate-in fade-in slide-in-from-bottom-2 motion-reduce:animate-none"
@@ -276,6 +237,9 @@ export function HomeContent({ products, announcement, visitorCount, categories: 
                                     <img
                                         src={product.image || `https://api.dicebear.com/7.x/shapes/svg?seed=${product.id}`}
                                         alt={product.name}
+                                        loading={index < 2 ? "eager" : "lazy"}
+                                        decoding="async"
+                                        fetchPriority={index < 2 ? "high" : "auto"}
                                         className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                                     />
                                     {/* Overlay gradient */}
@@ -308,18 +272,13 @@ export function HomeContent({ products, announcement, visitorCount, categories: 
                                     {/* Rating */}
                                     {product.reviewCount !== undefined && product.reviewCount > 0 && (
                                         <div className="flex items-center gap-1.5 mb-2.5">
-                                            <StarRating rating={Math.round(product.rating || 0)} size="xs" />
+                                            <StarRatingStatic rating={Math.round(product.rating || 0)} size="xs" />
                                             <span className="text-[10px] text-muted-foreground font-medium">({product.reviewCount})</span>
                                         </div>
                                     )}
 
                                     <div className="text-muted-foreground text-xs line-clamp-2 h-8 leading-4 overflow-hidden opacity-90">
-                                        <ReactMarkdown
-                                            allowedElements={["text", "span"]}
-                                            unwrapDisallowed={true}
-                                        >
-                                            {product.description || t('buy.noDescription')}
-                                        </ReactMarkdown>
+                                        {product.descriptionPlain || product.description || t('buy.noDescription')}
                                     </div>
                                 </CardContent>
 
@@ -365,6 +324,21 @@ export function HomeContent({ products, announcement, visitorCount, categories: 
                     </div>
                 )}
             </section>
+
+            {products.length > 0 && (
+                <div className="flex items-center justify-between mt-10 text-sm text-muted-foreground">
+                    <span>
+                        {t('search.page', { page: pagination.page, totalPages })}
+                    </span>
+                    {hasMore && (
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href={buildUrl({ q: searchTerm, category: selectedCategory, sort: sortKey, page: pagination.page + 1 })}>
+                                {t('common.loadMore')}
+                            </Link>
+                        </Button>
+                    )}
+                </div>
+            )}
         </main>
     )
 }

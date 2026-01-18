@@ -126,6 +126,7 @@ export async function importData(formData: FormData) {
         revalidateTag('home:ratings')
         revalidateTag('home:categories')
         revalidateTag('home:announcement')
+        revalidateTag('home:product-categories')
         return { success: true, count: successCount, errors: errorCount }
     } catch (e: any) {
         return { success: false, error: e.message }

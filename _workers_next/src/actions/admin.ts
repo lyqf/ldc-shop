@@ -125,6 +125,7 @@ export async function saveProduct(formData: FormData) {
     revalidateTag('home:products')
     revalidateTag('home:ratings')
     revalidateTag('home:categories')
+    revalidateTag('home:product-categories')
 }
 
 export async function deleteProduct(id: string) {
@@ -136,6 +137,7 @@ export async function deleteProduct(id: string) {
     revalidateTag('home:products')
     revalidateTag('home:ratings')
     revalidateTag('home:categories')
+    revalidateTag('home:product-categories')
 }
 
 export async function toggleProductStatus(id: string, isActive: boolean) {
@@ -145,6 +147,7 @@ export async function toggleProductStatus(id: string, isActive: boolean) {
     revalidatePath('/admin/settings')
     revalidatePath('/')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function reorderProduct(id: string, newOrder: number) {
@@ -154,6 +157,7 @@ export async function reorderProduct(id: string, newOrder: number) {
     revalidatePath('/admin/settings')
     revalidatePath('/')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function addCards(formData: FormData) {
@@ -192,6 +196,7 @@ export async function addCards(formData: FormData) {
     revalidatePath(`/admin/cards/${productId}`)
     revalidatePath('/')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function deleteCard(cardId: number) {
@@ -220,6 +225,7 @@ export async function deleteCard(cardId: number) {
     revalidatePath('/admin/cards')
     revalidatePath('/')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function deleteCards(cardIds: number[]) {
@@ -246,6 +252,7 @@ export async function deleteCards(cardIds: number[]) {
     revalidatePath('/admin/cards')
     revalidatePath('/')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function saveShopName(rawName: string) {
@@ -283,6 +290,7 @@ export async function saveShopName(rawName: string) {
     revalidatePath('/admin/products')
     revalidatePath('/admin/settings')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function saveShopDescription(rawDesc: string) {
@@ -298,6 +306,7 @@ export async function saveShopDescription(rawDesc: string) {
     revalidatePath('/admin/products')
     revalidatePath('/admin/settings')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function saveShopLogo(logoUrl: string) {
@@ -314,6 +323,7 @@ export async function saveShopLogo(logoUrl: string) {
     revalidatePath('/admin/settings')
     revalidatePath('/admin/settings')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function deleteReview(reviewId: number) {
@@ -332,6 +342,7 @@ export async function saveLowStockThreshold(raw: string) {
     revalidatePath('/admin/products')
     revalidatePath('/admin/settings')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function saveCheckinReward(raw: string) {
@@ -342,6 +353,7 @@ export async function saveCheckinReward(raw: string) {
     revalidatePath('/admin/products')
     revalidatePath('/admin/settings')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function saveCheckinEnabled(enabled: boolean) {
@@ -351,6 +363,7 @@ export async function saveCheckinEnabled(enabled: boolean) {
     revalidatePath('/admin/settings')
     revalidatePath('/')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function saveNoIndex(enabled: boolean) {
@@ -360,6 +373,7 @@ export async function saveNoIndex(enabled: boolean) {
     revalidatePath('/admin/settings')
     revalidatePath('/')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function saveShopFooter(footer: string) {
@@ -374,6 +388,7 @@ export async function saveShopFooter(footer: string) {
     revalidatePath('/admin/settings')
     revalidatePath('/')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 const VALID_THEME_COLORS = ['purple', 'blue', 'cyan', 'green', 'orange', 'pink', 'red']
@@ -389,6 +404,7 @@ export async function saveThemeColor(color: string) {
     revalidatePath('/admin/settings')
     revalidatePath('/')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function saveNotificationSettings(formData: FormData) {
@@ -462,6 +478,7 @@ export async function saveCategory(formData: FormData) {
     revalidatePath('/')
     revalidateTag('home:categories')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }
 
 export async function deleteCategory(id: number) {
@@ -472,4 +489,5 @@ export async function deleteCategory(id: number) {
     revalidatePath('/')
     revalidateTag('home:categories')
     revalidateTag('home:products')
+    revalidateTag('home:product-categories')
 }

@@ -505,7 +505,7 @@ export async function searchActiveProducts(params: {
             category: products.category,
             isHot: products.isHot,
             purchaseLimit: products.purchaseLimit,
-            stock: sql<number>`count(case when ${cards.id} IS NOT NULL AND COALESCE(${cards.isUsed}, 0) = 0 AND (${cards.reservedAt} IS NULL OR ${cards.reservedAt} < ${fiveMinutesAgo}) then 1 end)`,
+            stock: sql<number>`CASE WHEN ${products.isShared} = 1 THEN (CASE WHEN count(case when ${cards.id} IS NOT NULL AND COALESCE(${cards.isUsed}, 0) = 0 then 1 end) > 0 THEN 999999 ELSE 0 END) ELSE count(case when ${cards.id} IS NOT NULL AND COALESCE(${cards.isUsed}, 0) = 0 AND (${cards.reservedAt} IS NULL OR ${cards.reservedAt} < ${fiveMinutesAgo}) then 1 end) END`,
             locked: sql<number>`count(case when ${cards.id} IS NOT NULL AND COALESCE(${cards.isUsed}, 0) = 0 AND (${cards.reservedAt} >= ${fiveMinutesAgo}) then 1 end)`,
             sold: sql<number>`(SELECT COALESCE(SUM(${orders.quantity}), 0) FROM ${orders} WHERE ${orders.productId} = ${products.id} AND ${orders.status} IN ('paid', 'delivered'))`
         })
@@ -526,6 +526,22 @@ export async function searchActiveProducts(params: {
         total: totalRes[0]?.count || 0,
         page,
         pageSize,
+    }
+}
+
+export async function getActiveProductCategories(): Promise<string[]> {
+    await ensureDatabaseInitialized();
+    try {
+        const rows = await db
+            .select({ category: products.category })
+            .from(products)
+            .where(and(eq(products.isActive, true), sql`${products.category} IS NOT NULL`, sql`TRIM(${products.category}) <> ''`))
+            .groupBy(products.category)
+            .orderBy(asc(products.category));
+        return rows.map((r) => r.category as string).filter(Boolean);
+    } catch (error: any) {
+        if (isMissingTable(error)) return [];
+        throw error;
     }
 }
 
