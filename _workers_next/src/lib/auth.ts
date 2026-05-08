@@ -12,6 +12,7 @@ const providers: any[] = [
         id: "linuxdo",
         name: "Linux DO",
         type: "oauth",
+        checks: ["state"],
         authorization: "https://connect.linux.do/oauth2/authorize",
         token: {
             url: "https://connect.linux.do/oauth2/token",
