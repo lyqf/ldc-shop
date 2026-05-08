@@ -14,11 +14,12 @@ services:
       - NEXT_PUBLIC_APP_URL=https://shop.aini8.com
       - AUTH_URL=https://shop.aini8.com
       - AUTH_TRUST_HOST=true
-      # Must match Linux DO Connect app (Client ID / Secret), not payment keys only.
+      # OAuth 登录（Connect）；可与收款应用不同。
       - OAUTH_CLIENT_ID=8f3sIKPQM6hd9Ebdp4J5FlCVMNp4zQ51
       - OAUTH_CLIENT_SECRET=4cZn5e7MbSOywii2S741MOd7tfLE6NJ6
-      - MERCHANT_ID=8f3sIKPQM6hd9Ebdp4J5FlCVMNp4zQ51
-      - MERCHANT_KEY=4cZn5e7MbSOywii2S741MOd7tfLE6NJ6
+      # Epay 收款：Linux DO 应用「omg的小店铺」API 里的 Client ID / Secret 作 pid / key。
+      - MERCHANT_ID=ec02619390b8f5f484eec6c76db782b538f2ef1721828adfa45bbf9b8435e816
+      - MERCHANT_KEY=c6c931713c4b7bb64208572c2853aa63c5a866a9cdd5e32fa68b7b74b0bdf448
       - ADMIN_USERS=omg_lol
       
     depends_on:

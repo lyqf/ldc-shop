@@ -126,10 +126,8 @@ docker compose up -d
 | `NEXT_PUBLIC_APP_URL` | `https://shop.aini8.com` |
 | `AUTH_URL` | `https://shop.aini8.com` |
 | `AUTH_TRUST_HOST` | `true` |
-| `OAUTH_CLIENT_ID` | `8f3sIKPQM6hd9Ebdp4J5FlCVMNp4zQ51`（须与 [Connect](https://connect.linux.do) 应用页 **Client ID** 一致） |
-| `OAUTH_CLIENT_SECRET` | `4cZn5e7MbSOywii2S741MOd7tfLE6NJ6`（同上 **Client Secret**，勿与旧 `ec02…` / `c6c9…` 混用） |
-| `MERCHANT_ID` | `8f3sIKPQM6hd9Ebdp4J5FlCVMNp4zQ51` |
-| `MERCHANT_KEY` | `4cZn5e7MbSOywii2S741MOd7tfLE6NJ6` |
+| `OAUTH_CLIENT_ID` / `SECRET` | 用于 **Linux DO Connect 登录** 的应用凭证（可与收款应用不同）。 |
+| `MERCHANT_ID` / `MERCHANT_KEY` | **Epay 收款**：一般为你在 Connect 应用后台「API 配置」里对应 **收银** 应用的 Client ID / Secret（常为 `ec02…` / `c6c9…` 这类），须与网关 `pid`/密钥一致；勿与 OAuth 强行绑成同一组除非官方说明相同。 |
 | `ADMIN_USERS` | `omg_lol`（Linux DO 登录名，逗号分隔多个） |
 
 ---
