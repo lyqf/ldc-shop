@@ -359,7 +359,9 @@
         "cards": {
             "title": "Manage Stock",
             "addCards": "Add Cards",
-            "placeholder": "Enter card keys, separated by newlines or commas...",
+            "placeholder": "Or paste here (one record per line; keep each JSON blob on its own line).",
+            "fileHint": "Optional: select multiple text files; contents are concatenated with newlines before line-based parsing. Total upload limit 64 MB per submit. Files take precedence over the textarea.",
+            "needInput": "Choose a file or paste card payloads in the text area.",
             "available": "Available",
             "used": "Used",
             "noCards": "No cards added yet."

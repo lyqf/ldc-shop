@@ -107,15 +107,67 @@ export async function reorderProduct(id: string, newOrder: number) {
     revalidatePath('/')
 }
 
+/** One card payload per logical line (JSONL-friendly). Comma-split only for legacy simple keys without `{`. */
+function parseCardSecretsInput(rawCards: string): string[] {
+    const trimmed = rawCards.trim()
+    if (!trimmed) return []
+
+    const lines = trimmed
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+
+    if (
+        lines.length > 1 ||
+        lines.some((line) => line.startsWith('{') || line.startsWith('['))
+    ) {
+        return lines
+    }
+
+    const only = lines[0]
+    if (only.includes(',') && !only.trimStart().startsWith('{')) {
+        return only
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+    }
+
+    return [only]
+}
+
+const MAX_UPLOAD_BYTES = 64 * 1024 * 1024
+
 export async function addCards(formData: FormData) {
     await checkAdmin()
     const productId = formData.get('product_id') as string
-    const rawCards = formData.get('cards') as string
 
-    const cardList = rawCards
-        .split(/[\n,]+/)
-        .map(c => c.trim())
-        .filter(c => c)
+    const fileEntries = formData
+        .getAll('cards_file')
+        .filter((x): x is File => x instanceof File && x.size > 0)
+
+    let rawCards: string
+
+    if (fileEntries.length > 0) {
+        const totalBytes = fileEntries.reduce((s, f) => s + f.size, 0)
+        if (totalBytes > MAX_UPLOAD_BYTES) {
+            throw new Error(
+                `上传总大小超限（上限 ${Math.floor(MAX_UPLOAD_BYTES / (1024 * 1024))} MB），请分批或减少文件数`,
+            )
+        }
+        const pieces: string[] = []
+        for (const f of fileEntries) {
+            pieces.push(await f.text())
+        }
+        rawCards = pieces.join('\n')
+    } else {
+        rawCards = ((formData.get('cards') as string) ?? '').trim()
+    }
+
+    if (!rawCards.trim()) {
+        throw new Error("请粘贴卡密或选择文本文件（.txt / .json / .jsonl）")
+    }
+
+    const cardList = parseCardSecretsInput(rawCards)
 
     if (cardList.length === 0) return
 

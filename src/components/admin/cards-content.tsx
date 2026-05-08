@@ -3,9 +3,9 @@
 import { useI18n } from "@/lib/i18n/context"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { addCards, deleteCard } from "@/actions/admin"
-import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { CopyButton } from "@/components/copy-button"
 import { Trash2 } from "lucide-react"
@@ -27,6 +27,14 @@ export function CardsContent({ productId, productName, unusedCards }: CardsConte
     const router = useRouter()
 
     const handleSubmit = async (formData: FormData) => {
+        const files = formData
+            .getAll('cards_file')
+            .filter((x): x is File => x instanceof File && x.size > 0)
+        const text = ((formData.get('cards') as string) ?? '').trim()
+        if (files.length === 0 && !text) {
+            toast.error(t('admin.cards.needInput'))
+            return
+        }
         try {
             await addCards(formData)
             toast.success(t('common.success'))
@@ -56,7 +64,22 @@ export function CardsContent({ productId, productName, unusedCards }: CardsConte
                     <CardContent>
                         <form action={handleSubmit} className="space-y-4">
                             <input type="hidden" name="product_id" value={productId} />
-                            <Textarea name="cards" placeholder={t('admin.cards.placeholder')} rows={10} className="font-mono text-sm" required />
+                            <div className="space-y-2">
+                                <Input
+                                    type="file"
+                                    name="cards_file"
+                                    multiple
+                                    accept=".txt,.json,.jsonl,text/plain,application/json"
+                                    className="cursor-pointer font-mono text-sm"
+                                />
+                                <p className="text-xs text-muted-foreground">{t('admin.cards.fileHint')}</p>
+                            </div>
+                            <Textarea
+                                name="cards"
+                                placeholder={t('admin.cards.placeholder')}
+                                rows={10}
+                                className="font-mono text-sm"
+                            />
                             <Button type="submit" className="w-full">{t('common.add')}</Button>
                         </form>
                     </CardContent>

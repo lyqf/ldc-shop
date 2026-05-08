@@ -56,6 +56,7 @@ sudo tee /etc/nginx/sites-available/shop.aini8.com << 'EOF'
 server {
     listen 80;
     server_name shop.aini8.com;
+    client_max_body_size 64m;
 
     location / {
         proxy_pass http://127.0.0.1:3000;
@@ -75,7 +76,8 @@ sudo ln -s /etc/nginx/sites-available/shop.aini8.com /etc/nginx/sites-enabled/
 sudo nginx -t && sudo nginx -s reload
 ```
 
-> 注意：`X-Forwarded-Proto` 必须硬编码为 `https`，不能用 `$scheme`，否则 next-auth 会认为请求是 HTTP，导致 CSRF 验证失败。
+> 注意：`X-Forwarded-Proto` 必须硬编码为 `https`，不能用 `$scheme`，否则 next-auth 会认为请求是 HTTP，导致 CSRF 验证失败。  
+> 后台「批量导入卡密」上传大文件时需 `client_max_body_size`（如上 64m），否则 nginx 会截断请求体。
 
 ### 4. 打包上传源码
 
