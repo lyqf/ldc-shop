@@ -11,19 +11,15 @@ services:
       # Database
       - POSTGRES_URL=postgresql://postgres:postgres@db:5432/ldc_shop
       
-      # App URL (Change to your domain in production)
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
-      
-      # Auth (Required for OAuth behind reverse proxy)
-      - AUTH_URL=http://localhost:3000
+      - NEXT_PUBLIC_APP_URL=https://shop.aini8.com
+      - AUTH_URL=https://shop.aini8.com
       - AUTH_TRUST_HOST=true
-      
-      # Secrets (Replace with your actual values)
-      - OAUTH_CLIENT_ID=replace_with_client_id
-      - OAUTH_CLIENT_SECRET=replace_with_client_secret
-      - MERCHANT_ID=replace_with_merchant_id
-      - MERCHANT_KEY=replace_with_merchant_key
-      - ADMIN_USERS=admin,chatgpt
+      # Must match Linux DO Connect app (Client ID / Secret), not payment keys only.
+      - OAUTH_CLIENT_ID=8f3sIKPQM6hd9Ebdp4J5FlCVMNp4zQ51
+      - OAUTH_CLIENT_SECRET=4cZn5e7MbSOywii2S741MOd7tfLE6NJ6
+      - MERCHANT_ID=8f3sIKPQM6hd9Ebdp4J5FlCVMNp4zQ51
+      - MERCHANT_KEY=4cZn5e7MbSOywii2S741MOd7tfLE6NJ6
+      - ADMIN_USERS=omg_lol
       
     depends_on:
       - db
